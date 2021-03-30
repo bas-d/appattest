@@ -34,7 +34,8 @@ oyFraWVIyd/dganmrduC1bmTBGwD
 const attestationKey = "apple-appattest"
 
 type AuthenticatorAttestationResponse struct {
-	ClientDataJSON    utils.URLEncodedBase64 `json:"clientData"`
+	ClientData        utils.URLEncodedBase64 `json:"clientData"`
+	KeyID             string                 `json:"keyID"`
 	AttestationObject utils.URLEncodedBase64 `json:"attestationObject"`
 }
 
@@ -45,14 +46,14 @@ type AttestationObject struct {
 	AttStatement map[string]interface{} `json:"attStmt,omitempty"`
 }
 
-func (aar *AuthenticatorAttestationResponse) Verify(appID string, keyID string) ([]byte, []byte, error) {
+func (aar *AuthenticatorAttestationResponse) Verify(appID string) ([]byte, []byte, error) {
 	a, err := aar.parse()
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Compute clientDataHash as the SHA256 hash of clientData.
-	clientDataHash := sha256.Sum256(aar.ClientDataJSON)
+	clientDataHash := sha256.Sum256(aar.ClientData)
 
 	// Check if we have the right format.
 	if a.Format != attestationKey {
@@ -60,9 +61,9 @@ func (aar *AuthenticatorAttestationResponse) Verify(appID string, keyID string) 
 	}
 
 	// Decode the key ID
-	keyIdData, err := base64.StdEncoding.DecodeString(keyID)
+	keyIdData, err := base64.StdEncoding.DecodeString(aar.KeyID)
 	if err != nil {
-		return nil, nil, utils.ErrParsingData.WithInfo(fmt.Sprintf("The KeyID was not valid base64: %s", keyID))
+		return nil, nil, utils.ErrParsingData.WithInfo(fmt.Sprintf("The KeyID was not valid base64: %s", aar.KeyID))
 	}
 
 	// Handle Steps 6 through 9
