@@ -46,7 +46,7 @@ type AttestationObject struct {
 	AttStatement map[string]interface{} `json:"attStmt,omitempty"`
 }
 
-func (aar *AuthenticatorAttestationResponse) Verify(appID string) ([]byte, []byte, error) {
+func (aar *AuthenticatorAttestationResponse) Verify(appID string, production bool) ([]byte, []byte, error) {
 	a, err := aar.parse()
 	if err != nil {
 		return nil, nil, err
@@ -57,19 +57,19 @@ func (aar *AuthenticatorAttestationResponse) Verify(appID string) ([]byte, []byt
 
 	// Check if we have the right format.
 	if a.Format != attestationKey {
-		return nil, nil, utils.ErrAttestationFormat.WithInfo(fmt.Sprintf("Wrong attestation format unsupported: %s", a.Format))
+		return nil, nil, utils.ErrAttestationFormat.WithDetails(fmt.Sprintf("Wrong attestation format unsupported: %s", a.Format))
 	}
 
 	// Decode the key ID
 	keyIdData, err := base64.StdEncoding.DecodeString(aar.KeyID)
 	if err != nil {
-		return nil, nil, utils.ErrParsingData.WithInfo(fmt.Sprintf("The KeyID was not valid base64: %s", aar.KeyID))
+		return nil, nil, utils.ErrParsingData.WithDetails(fmt.Sprintf("The KeyID was not valid base64: %s", aar.KeyID))
 	}
 
 	// Handle Steps 6 through 9
 	// 6. Compute the SHA256 hash of your app’s App ID
 	appIDHash := sha256.Sum256([]byte(appID))
-	authDataVerificationError := a.AuthData.Verify(appIDHash[:], keyIdData)
+	authDataVerificationError := a.AuthData.Verify(appIDHash[:], keyIdData, production)
 	if authDataVerificationError != nil {
 		return nil, nil, authDataVerificationError
 	}
@@ -85,7 +85,7 @@ func (aar *AuthenticatorAttestationResponse) parse() (*AttestationObject, error)
 
 	err := codec.NewDecoderBytes(aar.AttestationObject, &cborHandler).Decode(&a)
 	if err != nil {
-		return nil, utils.ErrParsingData.WithInfo(err.Error())
+		return nil, utils.ErrParsingData.WithDetails(err.Error())
 	}
 
 	err = a.AuthData.Unmarshal(a.RawAuthData)
@@ -94,7 +94,7 @@ func (aar *AuthenticatorAttestationResponse) parse() (*AttestationObject, error)
 	}
 
 	if !a.AuthData.Flags.HasAttestedCredentialData() {
-		return nil, utils.ErrAttestationFormat.WithInfo("Attestation missing attested credential data flag")
+		return nil, utils.ErrAttestationFormat.WithDetails("Attestation missing attested credential data flag")
 	}
 
 	return &a, nil

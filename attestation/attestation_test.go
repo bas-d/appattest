@@ -13,8 +13,7 @@ func TestAttestationVerification(t *testing.T) {
 		if err := json.Unmarshal([]byte(attestation), &aar); err != nil {
 			t.Fatal(err)
 		}
-
-		pk, _, err := aar.Verify("35MFYY2JY5.co.chiff.attestation-test")
+		pk, _, err := aar.Verify("35MFYY2JY5.co.chiff.attestation-test", false)
 		if err != nil {
 			t.Fatalf("Not valid: %+v", err)
 		}

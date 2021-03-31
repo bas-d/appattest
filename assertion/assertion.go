@@ -56,18 +56,18 @@ func (aar *AuthenticatorAssertionResponse) Verify(storedChallenge []byte, relyin
 	// 4. Compute the SHA256 hash of the client’s App ID, and verify that it matches the RP ID in the authenticator data.
 	rpIDHash := sha256.Sum256([]byte(relyingPartyID))
 	if !bytes.Equal(a.AuthenticatorData.RPIDHash[:], rpIDHash[:]) {
-		return utils.ErrVerification.WithInfo(fmt.Sprintf("RP Hash mismatch. Expected %+s and Received %+s\n", a.AuthenticatorData.RPIDHash, rpIDHash))
+		return utils.ErrVerification.WithDetails(fmt.Sprintf("RP Hash mismatch. Expected %x and Received %x\n", a.AuthenticatorData.RPIDHash, rpIDHash))
 	}
 
 	// 5. Verify that the authenticator data’s counter value is greater than the value from the previous assertion, or greater than 0 on the first assertion.
 	if a.AuthenticatorData.Counter <= previousCounter {
-		return utils.ErrVerification.WithInfo(fmt.Sprintf("Counter was not not greater than previous  %d\n", a.AuthenticatorData.Counter))
+		return utils.ErrVerification.WithDetails(fmt.Sprintf("Counter was not not greater than previous  %d\n", a.AuthenticatorData.Counter))
 	}
 
 	// 6. Verify that the challenge embedded in the client data matches the earlier challenge to the client.
 	if !bytes.Equal(storedChallenge, aar.ClientDataJSON) {
 		err := utils.ErrChallengeMismatch.WithDetails("Error validating challenge")
-		return err.WithInfo(fmt.Sprintf("Expected b Value: %#v\nReceived b: %#v\n", storedChallenge, aar.ClientDataJSON))
+		return err.WithDetails(fmt.Sprintf("Expected b Value: %#v\nReceived b: %#v\n", storedChallenge, aar.ClientDataJSON))
 	}
 
 	return nil
@@ -81,7 +81,7 @@ func (aar *AuthenticatorAssertionResponse) parse() (*Assertion, error) {
 	// Decode the attestation data with unmarshalled auth data
 	err := codec.NewDecoderBytes(aar.Assertion, &cborHandler).Decode(&a)
 	if err != nil {
-		return nil, utils.ErrParsingData.WithInfo(err.Error())
+		return nil, utils.ErrParsingData.WithDetails(err.Error())
 	}
 
 	err = a.AuthenticatorData.Unmarshal(a.RawAuthenticatorData)

@@ -150,7 +150,7 @@ func (a *AuthenticatorData) Unmarshal(rawAuthData []byte) error {
 	if minAuthDataLength > len(rawAuthData) {
 		err := utils.ErrBadRequest.WithDetails("Authenticator data length too short")
 		info := fmt.Sprintf("Expected data greater than %d bytes. Got %d bytes\n", minAuthDataLength, len(rawAuthData))
-		return err.WithInfo(info)
+		return err.WithDetails(info)
 	}
 
 	a.RPIDHash = rawAuthData[:32]
@@ -204,29 +204,33 @@ func ResidentKeyUnrequired() *bool {
 	return &required
 }
 
-func (a *AuthenticatorData) Verify(appIDHash []byte, credentialId []byte) error {
+func (a *AuthenticatorData) Verify(appIDHash []byte, credentialId []byte, production bool) error {
 
 	// 6. Compute the SHA256 hash of your app’s App ID, and verify that this is the same as the authenticator data’s RP ID hash.
 	if !bytes.Equal(a.RPIDHash[:], appIDHash) {
-		return utils.ErrVerification.WithInfo(fmt.Sprintf("RP Hash mismatch. Expected %+s and Received %+s\n", a.RPIDHash, appIDHash))
+		return utils.ErrVerification.WithDetails(fmt.Sprintf("RP Hash mismatch. Expected %+s and Received %+s\n", a.RPIDHash, appIDHash))
 	}
 
 	// 7. Verify that the authenticator data’s counter field equals 0.
 	if a.Counter != 0 {
-		return utils.ErrVerification.WithInfo(fmt.Sprintf("Counter was not 0, but %d\n", a.Counter))
+		return utils.ErrVerification.WithDetails(fmt.Sprintf("Counter was not 0, but %d\n", a.Counter))
 	}
 
 	// 8. Verify that the authenticator data’s aaguid field is either appattestdevelop if operating in the development environment,
 	// or appattest followed by seven 0x00 bytes if operating in the production environment.
-	// TODO: Check for production and check for "appattest with seven 0x00 bytes"
-	aaguid := []byte("appattestdevelop")
+	aaguid := make([]byte, 16)
+	if production {
+		copy(aaguid, []byte("appattest"))
+	} else {
+		copy(aaguid, []byte("appattestdevelop"))
+	}
 	if !bytes.Equal(a.AttData.AAGUID, aaguid) {
-		return utils.ErrVerification.WithInfo("AAGUID was not appattestdevelop\n")
+		return utils.ErrVerification.WithDetails("AAGUID was not appattestdevelop\n")
 	}
 
 	// 9. Verify that the authenticator data’s credentialId field is the same as the key identifier.
 	if !bytes.Equal(a.AttData.CredentialID, credentialId) {
-		return utils.ErrVerification.WithInfo("Credential ID did not equal the provided key identifier\n")
+		return utils.ErrVerification.WithDetails("Credential ID did not equal the provided key identifier\n")
 	}
 
 	return nil
