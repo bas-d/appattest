@@ -9,7 +9,6 @@ import (
 	"encoding/asn1"
 	"encoding/base64"
 	"fmt"
-	"time"
 
 	"github.com/bas-d/appattest/authenticator"
 	"github.com/bas-d/appattest/utils"
@@ -100,7 +99,7 @@ func (aar *AuthenticatorAttestationResponse) parse() (*AttestationObject, error)
 	return &a, nil
 }
 
-func verifyAttestation(att AttestationObject, clientDataHash []byte, keyID []byte) ([]byte, []byte, error) {
+func verifyAttestation(att AttestationObject, clientDataHash, keyID []byte) ([]byte, []byte, error) {
 	// Validate according to https://developer.apple.com/documentation/devicecheck/validating_apps_that_connect_to_your_server
 	// Create certificate pool with the Apple Root cert.
 
@@ -150,7 +149,6 @@ func verifyAttestation(att AttestationObject, clientDataHash []byte, keyID []byt
 	// Create verification options.
 	verifyOptions := x509.VerifyOptions{
 		Roots:         roots,
-		CurrentTime:   time.Date(2021, 03, 29, 12, 0, 0, 0, time.FixedZone("UTC", 0)), // TODO: Only set this for testing.
 		Intermediates: intermediates,
 	}
 
