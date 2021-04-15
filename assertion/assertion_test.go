@@ -17,16 +17,15 @@ func TestAssertionVerififcation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Could not decode public key: %+s", publicKey)
 		}
-		err = aar.Verify([]byte("attestation-test"), "35MFYY2JY5.co.chiff.attestation-test", 0, decodedPk)
+		_, err = aar.Verify("assertion-test", "35MFYY2JY5.co.chiff.attestation-test", 0, decodedPk)
 		if err != nil {
 			t.Fatalf("Not valid: %+v", err)
 		}
 	})
 }
 
-const publicKey = "042bc5badb424b7f24b4f70a9e7e6f54309d26800c16cf10edf78820109c64a429a603244d57c2ad7156a2213a47eb674910c630706a56d170ccb3758e80d58218"
-
+const publicKey = "0437c404fa2bbf8fbcf4ee7080573d5fa80c4f6cc3a22f7db43af92c394e7cd1c880c95ab422972625e8e673af1bda2b096654e9b602895601f925bb5941c53082"
 const assertion = `{ 
-	"assertion": "omlzaWduYXR1cmVYRjBEAiBjhWzVClZBa6I38V6cWWK22tE6asBfU0SQiGa3xTsdzgIgA-vso5QWvul-w0mNZnADdTZ7CTgIRmAzLyF0UfoEHo5xYXV0aGVudGljYXRvckRhdGFYJXzvK1XackEIupEnlvZ1_wC-cdUtriaPpojTTKbSf3B0QAAAAAI",
-	"clientData": "YXR0ZXN0YXRpb24tdGVzdA"
+	"assertion": "omlzaWduYXR1cmVYRzBFAiEAyC5S3pcvtSpmTfNSd8aJRJCQ6PbN7Dnv_oPkZNMLeIwCIBmxCHXKYyGswzp_LwOxoL18puHooxudXWqDgtTvRomdcWF1dGhlbnRpY2F0b3JEYXRhWCV87ytV2nJBCLqRJ5b2df8AvnHVLa4mj6aI00ym0n9wdEAAAAAD",
+	"clientData": "eyJjaGFsbGVuZ2UiOiJhc3NlcnRpb24tdGVzdCJ9"
 }`
