@@ -16,6 +16,8 @@ type URLEncodedBase64 []byte
 func (dest *URLEncodedBase64) UnmarshalJSON(data []byte) error {
 	// Trim the leading spaces
 	data = bytes.Trim(data, "\"")
+	// Remove padding
+	data = bytes.TrimRight(data, "=")
 	out := make([]byte, base64.RawURLEncoding.DecodedLen(len(data)))
 	n, err := base64.RawURLEncoding.Decode(out, data)
 	if err != nil {
