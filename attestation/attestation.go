@@ -9,6 +9,7 @@ import (
 	"encoding/asn1"
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	"github.com/bas-d/appattest/authenticator"
 	"github.com/bas-d/appattest/utils"
@@ -31,6 +32,10 @@ oyFraWVIyd/dganmrduC1bmTBGwD
 -----END CERTIFICATE-----`
 
 const attestationKey = "apple-appattest"
+
+// TimeNow is an indirection to allow tests to replace the current time
+// when verifying attestation certificates
+var TimeNow = time.Now
 
 type AuthenticatorAttestationResponse struct {
 	ClientData        utils.URLEncodedBase64 `json:"clientData"`
@@ -150,6 +155,7 @@ func verifyAttestation(att AttestationObject, clientDataHash, keyID []byte) ([]b
 	verifyOptions := x509.VerifyOptions{
 		Roots:         roots,
 		Intermediates: intermediates,
+		CurrentTime:   TimeNow(),
 	}
 
 	// 1. Verify that the x5c array contains the intermediate and leaf certificates for App Attest,
