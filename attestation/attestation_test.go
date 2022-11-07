@@ -5,10 +5,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"testing"
+	"time"
 )
 
 func TestAttestationVerification(t *testing.T) {
 	t.Run("Testing attestation", func(t *testing.T) {
+		TimeNow = func() time.Time {
+			return time.Date(2021, 4, 14, 9, 55, 20, 0, time.UTC)
+		}
 		aar := AuthenticatorAttestationResponse{}
 		if err := json.Unmarshal([]byte(attestation), &aar); err != nil {
 			t.Fatal(err)
